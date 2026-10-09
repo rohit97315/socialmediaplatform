@@ -3,7 +3,34 @@ import SocialUser from "../models/user.model.js";
 // import { createHash } from "crypto";
 import crypto from "node:crypto";
 import bcrypt from "bcrypt";
+import PDFDocument from "pdfkit"
+import fs from "fs";
 
+const convertUserDataToPDF = async (userData) => {
+    const doc = new PDFDocument();
+
+    const outputPath = crypto.randomBytes(32).toString("hex")+".pdf";
+    const stream = fs.createWriteStream("uploads/"+outputPath);
+
+    doc.pipe(stream);
+    doc.image(`uploads/${userData.userId.profilePicture}`,{align:"center",width:100});
+    doc.fontSize(14).text(`Name: ${userData.userId.name}`);
+    doc.fontSize(14).text(`Usernaem: ${userData.userId.username}`);
+    doc.fontSize(14).text(`Email: ${userData.userId.email}`);
+    doc.fontSize(14).text(`Bio: ${userData.bio}`);
+    doc.fontSize(14).text(`CurrentPosition: ${userData.currentPost}`);
+    doc.fontSize(14).text("pastWork:");
+    userData.pastWork.forEach((work,index) => {
+        doc.fontSize(14).text(`Company Name:${work.company}`);
+        doc.fontSize(14).text(`Position:${work.position}`);
+        doc.fontSize(14).text(`years:${work.years}`);
+
+    });
+
+    doc.end();
+    return outputPath;
+
+}
 
 export const register = async(req,res)=>{
     try{
@@ -147,8 +174,41 @@ export const getUserAndProfile = async(req,res) =>{
 
 export const updateProfileData = async(req,res) => {
     try{
+        const {token, ...newProfiledata} = req.body;
+
+        const user = await SocialUser.findOne({token});
+        if(!user){
+            return res.status(400).json({message:"user not found"});
+        }
+
+        const profile_to_update = await Profile.findOne({userId:user._id});
+
+        Object.assign(profile_to_update,newProfiledata);
+        await profile_to_update.save();
+
+
+        return res.json({message:"profile updated"});
+
 
     }catch(err){
         return res.status(500).json({message:err.message});
     }
+}
+
+export const getAllUserProfile = async(req,res) => {
+    try{
+        const profiles = await Profile.find().populate('userId','name username email fieldOfStudy');
+
+        return res.json({profiles});
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+export const downloadProfile = async(req,res) => {
+    const user_id = req.query.id;
+    const userProfile = await Profile.findOne({userId:user_id}).populate('userId','name username email profilePicture');
+    let a = await convertUserDataToPDF(userProfile);
+
+    return res.json({"message":a});
 }
