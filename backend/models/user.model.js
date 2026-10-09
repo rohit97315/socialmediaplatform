@@ -40,4 +40,4 @@ const userSchema = mongoose.Schema({
 
 
 const SocialUser = mongoose.model("SocialUser",userSchema);
-export default SocialUserl;
+export default SocialUser;

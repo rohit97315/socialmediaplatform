@@ -5,15 +5,18 @@ import mongoose from "mongoose";
 
 import postRoutes from "./routes/post.routes.js"
 
+import userRoutes from "./routes/user.routes.js"
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
-
-
-app.use(postRoutes);
 app.use(express.json());
 app.use(urlencoded({extended:true}));
+
+app.use(postRoutes);
+app.use(userRoutes);
+
 
 const start = async() =>{
     const mongoDB = await mongoose.connect(process.env.MONGO_URI)
