@@ -65,10 +65,88 @@ export const login = async(req,res) => {
         }
         const token = crypto.randomBytes(32).toString("hex");
 
-        await SocialUser.updateOne({id:user._id},{token});
+        await SocialUser.updateOne({_id:user._id},{token});
 
         return res.json({token});
 
+
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+
+export const uploadProfilePicture = async(req,res) =>{
+    const {token} = req.body;
+    console.log(token);
+
+    try{
+        const user = await SocialUser.findOne({token});
+        if(!user){
+            return res.status(400).json({message:"user not found"});
+        }
+
+        user.profilePicture = req.file.filename;
+
+        await user.save();
+
+        return res.json({message:"profile picture updated"});
+
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+export const updateUserProfile = async(req,res) => {
+
+
+    try{
+
+        const {token, ...newuserdata} = req.body;
+
+        const user = await SocialUser.findOne({token});
+        if(!user){
+            return res.status(400).json({message:"user not found"});
+        }
+
+        const {username, email} = newuserdata;
+        const existingUser = await SocialUser.findOne({$or: [{username},{email}]});
+        if(existingUser){
+            if(existingUser || String(existingUser._id) !== String(user._id)){
+                return res.status(400).json({message:"user already exists"});
+            }
+        }
+        Object.assign(user, newuserdata);
+        await user.save();
+
+        return res.json({message:"user updated"});
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+
+export const getUserAndProfile = async(req,res) =>{
+    try{
+        const {token} = req.body;
+
+        const user = await SocialUser.findOne({token});
+        if(!user){
+            return res.status(400).json({message:"user not found"});
+        }
+
+        const userProfile = await Profile.findOne({userId: user._id}).populate('userId','name email username profilePicture');
+
+        return res.json(userProfile);
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+
+}
+
+
+export const updateProfileData = async(req,res) => {
+    try{
 
     }catch(err){
         return res.status(500).json({message:err.message});
