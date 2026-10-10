@@ -1,4 +1,5 @@
 // import { underline } from "pdfkit";
+import Comment from "../models/comments.model.js";
 import Post from "../models/post.model.js";
 import Profile from "../models/profile.model.js";
 import SocialUser from "../models/user.model.js";
@@ -63,6 +64,31 @@ export const deletePost = async(req,res) => {
         await Post.deletePost({_id:post_id});
 
         return res.json({message:"Post deleted"});
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+export const commentPost = async(req,res) => {
+    const {token ,post_id,commentbody} = req.body;
+    try{
+        const user = await SocialUser.findOne({token:token}).select("_id");
+        if(!user){
+            return res.status(400).json({message:"user found"});
+        }
+
+        const post = await Post.findOne({_id:post_id});
+        if(!post){
+            return res.status(404).json({message:"post not found"});
+        }
+        const comment = new Comment({
+            userId:user._id,
+            postId:post_id,
+            comment:commentbody
+        })
+
+        await comment.save();
+        return res.status(200).json({message:"comment added"});
     }catch(err){
         return res.status(500).json({message:err.message});
     }
