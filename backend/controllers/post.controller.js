@@ -93,3 +93,53 @@ export const commentPost = async(req,res) => {
         return res.status(500).json({message:err.message});
     }
 }
+
+export const get_comment_by_post = async(req,res) => {
+    const {post_id} = req.body;
+    try{
+        const post = await Post.findOne({"_id":post_id});
+        if(!post){
+            return res.status(404).json({message:"post not found"});
+        }
+
+        return res.json({comments:post.comments})
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
+
+export const delete_comment_of_user = async(req,res) =>{
+    const {token, comment_id} = req.body;
+    try{
+        const user = await SocialUser.findOne({token:token}).select("_id");
+        if(!user){
+            return res.status(400).json({message:"user found"});
+        }
+        const comment = await Comment.findOne({"_id":comment_id});
+        if(!comment){
+            return res.status(404).json({message:"comment not found"});
+        }
+        await Comment.deleteOne({"_id":comment_id});
+
+        return res.json({message:"comment deleted"});
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    
+    }
+}
+
+
+export const increment_likes = async(req,res) => {
+    const{post_id} = req.body;
+    try{
+        const post = await Post.findOne({"_id":post_id});
+        if(!post){
+            return res.status(404).json({message:"post not found"});
+        }
+        post.likes = post.likes+1;
+        await post.save();
+        return res.json({message:"likes incremented"});
+    }catch(err){
+        return res.status(500).json({message:err.message});
+    }
+}
