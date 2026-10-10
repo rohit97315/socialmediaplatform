@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   reactStrictMode: true,
+  devIndicators:false,
 };
 
 export default nextConfig;
