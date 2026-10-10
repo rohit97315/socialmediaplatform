@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const postSchema = mongoose.Schema({
     userId:{
-        type:moongose.Schema.Types.ObjectId,
+        type:mongoose.Schema.Types.ObjectId,
         ref:"SocialUser"
     },
     body:{
