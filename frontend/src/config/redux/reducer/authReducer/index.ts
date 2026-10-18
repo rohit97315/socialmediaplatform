@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { loginUser,registerUser } from "../../action/authAction"
+import { getAboutUser, loginUser,registerUser } from "../../action/authAction"
 
 
 
@@ -27,6 +27,9 @@ const authSlice = createSlice({
         reset: () => initialState,
         handleLoginUser: (state) => {
             state.message = "hello"
+        },
+        emptyMessage: (state) => {
+            state.message = ""
         }
     },
     extraReducers: (builder) =>{
@@ -56,13 +59,24 @@ const authSlice = createSlice({
             state.isSuccess=true;
             state.loggedIn = true;
             state.message="registration successful please login";
+    
         })
         .addCase(registerUser.rejected,(state,action) => {
             state.isLoading=false;
             state.isError=true;
             state.message=action.payload as string
         })
+        .addCase(getAboutUser.fulfilled,(state,action) => {
+            state.isLoading=false;
+            state.isError=false;
+            state.profileFetched=true;
+            state.user=action.payload.profile;
+
+        })
     }
 })
+
+
+export const {reset,emptyMessage} = authSlice.actions;
 
 export default authSlice.reducer;
